@@ -24,6 +24,9 @@ import { initializePostgres, sql } from "./db/postgres/postgres.js";
 import { cleanupOldSessions } from "./db/postgres/session-cleanup.js";
 import { auth, initAuth } from "./lib/auth.js";
 import { mapHeaders } from "./lib/betterAuth.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -41,7 +44,7 @@ const server = Fastify({
 const domains = await sql`SELECT domain FROM sites`;
 const allowList = [
   "http://localhost:3002",
-  "https://tracking.tomato.gg",
+  String(process.env.BASE_URL),
   ...domains.map(({ domain }) => `https://${domain}`),
 ];
 initAuth(allowList);
