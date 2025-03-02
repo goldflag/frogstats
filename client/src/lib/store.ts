@@ -77,7 +77,8 @@ export type FilterParameter =
   | "referrer"
   | "pathname"
   | "page_title"
-  | "querystring";
+  | "querystring"
+  | "iso_3166_2";
 
 export type Filter = {
   parameter: FilterParameter;
