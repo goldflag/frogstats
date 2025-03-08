@@ -52,7 +52,6 @@
     "react-dom": "^19.0.0",
     "react-leaflet": "^5.0.0",
     "react-select": "^5.10.0",
-    "react-simple-maps": "^3.0.0",
     "sonner": "^2.0.1",
     "spinners-react": "^1.0.10",
     "tailwind-merge": "^2.6.0",
