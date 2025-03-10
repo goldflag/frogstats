@@ -19,7 +19,14 @@ export function middleware(request: NextRequest) {
     const siteId = match[1];
 
     // Don't redirect certain built-in routes like 'login', 'signup', etc.
-    const excludedRoutes = ["login", "signup", "settings", "_next", "api"];
+    const excludedRoutes = [
+      "login",
+      "signup",
+      "settings",
+      "subscribe",
+      "_next",
+      "api",
+    ];
     if (excludedRoutes.includes(siteId)) {
       return NextResponse.next();
     }

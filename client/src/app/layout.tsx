@@ -17,7 +17,7 @@ const metadata: Metadata = {
   title: "Frogstats Analytics",
   description: "Analytics dashboard for your web applications",
 };
-const publicRoutes = ["/login"];
+const publicRoutes = ["/login", "/signup"];
 
 export default function RootLayout({
   children,
@@ -29,12 +29,7 @@ export default function RootLayout({
   const pathname = usePathname();
 
   useEffect(() => {
-    if (
-      !isPending &&
-      !user &&
-      !publicRoutes.includes(pathname) &&
-      pathname !== "/signup"
-    ) {
+    if (!isPending && !user && !publicRoutes.includes(pathname)) {
       redirect("/login");
     }
   }, [isPending, user, pathname]);

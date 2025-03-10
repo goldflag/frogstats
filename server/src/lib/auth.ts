@@ -7,8 +7,12 @@ import { db } from "../db/postgres/postgres.js";
 import { IS_CLOUD } from "./const.js";
 import * as schema from "../db/postgres/schema.js";
 import { eq } from "drizzle-orm";
+import { stripe } from "@better-auth/stripe";
+import Stripe from "stripe";
 
 dotenv.config();
+
+const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 type AuthType = ReturnType<typeof betterAuth> | null;
 
@@ -20,6 +24,34 @@ const pluginList = IS_CLOUD
         allowUserToCreateOrganization: true,
         // Set the creator role to owner
         creatorRole: "owner",
+      }),
+      stripe({
+        stripeClient,
+        stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
+        createCustomerOnSignUp: true,
+        subscription: {
+          enabled: true,
+          plans: [
+            {
+              id: "basic",
+              priceId: "price_1R0w56DFVprnAny2n2QzYdsi",
+              name: "Basic",
+              interval: "month",
+              limits: {
+                events: 100000,
+              },
+            },
+            {
+              id: "pro",
+              priceId: "price_1R0w5uDFVprnAny2T2AGF2sK",
+              name: "Pro",
+              interval: "month",
+              limits: {
+                events: 100000,
+              },
+            },
+          ],
+        },
       }),
     ]
   : [
@@ -53,7 +85,7 @@ export let auth: AuthType | null = betterAuth({
       enabled: true,
     },
   },
-  plugins: pluginList,
+  plugins: pluginList as any,
   trustedOrigins: ["http://localhost:3002"],
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production", // don't mark Secure in dev
@@ -63,6 +95,7 @@ export let auth: AuthType | null = betterAuth({
     },
   },
 });
+
 export function initAuth(allowedOrigins: string[]) {
   auth = betterAuth({
     basePath: "/auth",
@@ -132,42 +165,13 @@ export function initAuth(allowedOrigins: string[]) {
         },
       },
     },
-    plugins: pluginList,
+    plugins: pluginList as any,
     trustedOrigins: allowedOrigins,
     advanced: {
       useSecureCookies: process.env.NODE_ENV === "production",
       defaultCookieAttributes: {
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         path: "/",
-      },
-    },
-    // Use database hooks to create an organization after user signup
-    databaseHooks: {
-      user: {
-        create: {
-          after: async (user) => {
-            // Create an organization for the new user
-            console.info(user);
-            // if (auth) {
-            //   try {
-            //     const orgName = user.name || user.username || "My Organization";
-            //     await auth.api.organization.createOrganization({
-            //       body: {
-            //         name: orgName,
-            //       },
-            //       headers: {
-            //         "x-user-id": user.id,
-            //       },
-            //     });
-            //   } catch (error) {
-            //     console.error(
-            //       "Error creating organization for new user:",
-            //       error
-            //     );
-            //   }
-            // }
-          },
-        },
       },
     },
   });

@@ -4,18 +4,24 @@ import { Button } from "@/components/ui/button";
 import { authClient } from "../../lib/auth";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { GearSix, User, Users as Users_ } from "@phosphor-icons/react";
+import {
+  GearSix,
+  User,
+  Users as Users_,
+  CreditCard,
+} from "@phosphor-icons/react";
 
 import { Input } from "../../components/ui/input";
 import { Account } from "./account/Account";
 import { Organizations } from "./organizations/Organizations";
 import { Settings } from "./settings/settings";
+import SubscriptionPage from "./subscription/page";
 
 export default function SettingsPage() {
   const session = authClient.useSession();
   const router = useRouter();
   const [selectedTab, setSelectedTab] = useState<
-    "account" | "settings" | "organizations"
+    "account" | "settings" | "organizations" | "subscription"
   >("account");
 
   return (
@@ -46,12 +52,21 @@ export default function SettingsPage() {
             <Users_ size={16} weight="bold" />
             Organizations
           </Button>
+          <Button
+            variant={selectedTab === "subscription" ? "default" : "ghost"}
+            onClick={() => setSelectedTab("subscription")}
+            className="justify-start"
+          >
+            <CreditCard size={16} weight="bold" />
+            Subscription
+          </Button>
         </div>
         {selectedTab === "account" && session.data?.user && (
           <Account session={session} />
         )}
         {selectedTab === "organizations" && <Organizations />}
         {selectedTab === "settings" && <Settings />}
+        {selectedTab === "subscription" && <SubscriptionPage />}
       </div>
     </div>
   );

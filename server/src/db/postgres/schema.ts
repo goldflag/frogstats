@@ -6,24 +6,33 @@ import {
   serial,
   text,
   timestamp,
+  unique,
 } from "drizzle-orm/pg-core";
 
 // User table
-export const users = pgTable("user", {
-  id: text("id").primaryKey().notNull(),
-  name: text("name").notNull(),
-  username: text("username").unique(),
-  email: text("email").notNull().unique(),
-  emailVerified: boolean("emailVerified").notNull(),
-  image: text("image"),
-  createdAt: timestamp("createdAt").notNull(),
-  updatedAt: timestamp("updatedAt").notNull(),
-  role: text("role").notNull().default("user"),
-  displayUsername: text("displayUsername"),
-  banned: boolean("banned"),
-  banReason: text("banReason"),
-  banExpires: timestamp("banExpires"),
-});
+export const users = pgTable(
+  "user",
+  {
+    id: text().primaryKey().notNull(),
+    name: text().notNull(),
+    username: text(),
+    email: text().notNull(),
+    emailVerified: boolean().notNull(),
+    image: text(),
+    createdAt: timestamp({ mode: "string" }).notNull(),
+    updatedAt: timestamp({ mode: "string" }).notNull(),
+    role: text().default("user").notNull(),
+    displayUsername: text(),
+    banned: boolean(),
+    banReason: text(),
+    banExpires: timestamp({ mode: "string" }),
+    stripeCustomerId: text(),
+  },
+  (table) => [
+    unique("user_username_unique").on(table.username),
+    unique("user_email_unique").on(table.email),
+  ]
+);
 
 // Verification table
 export const verification = pgTable("verification", {
@@ -150,4 +159,22 @@ export const session = pgTable("session", {
     .references(() => users.id),
   impersonatedBy: text("impersonatedBy"),
   activeOrganizationId: text("activeOrganizationId"),
+});
+
+// Subscription table
+export const subscription = pgTable("subscription", {
+  id: text("id").primaryKey().notNull(),
+  plan: text("plan").notNull(),
+  referenceId: text("referenceId").notNull(),
+  stripeCustomerId: text("stripeCustomerId"),
+  stripeSubscriptionId: text("stripeSubscriptionId"),
+  status: text("status").notNull(),
+  periodStart: timestamp("periodStart", { mode: "string" }),
+  periodEnd: timestamp("periodEnd", { mode: "string" }),
+  cancelAtPeriodEnd: boolean("cancelAtPeriodEnd"),
+  seats: integer("seats"),
+  trialStart: timestamp("trialStart", { mode: "string" }),
+  trialEnd: timestamp("trialEnd", { mode: "string" }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });

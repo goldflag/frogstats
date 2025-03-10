@@ -2,10 +2,13 @@ import {
   useQuery,
   UseQueryResult,
   useInfiniteQuery,
+  useMutation,
+  useQueryClient,
 } from "@tanstack/react-query";
 import { BACKEND_URL } from "../lib/const";
 import { FilterParameter, useStore } from "../lib/store";
 import { authedFetch, getStartAndEndDate } from "./utils";
+import { authClient } from "@/lib/auth";
 
 export type APIResponse<T> = {
   data: T;
@@ -391,3 +394,122 @@ export const useOrganizationMembers = (organizationId: string) => {
     staleTime: Infinity,
   });
 };
+
+// Subscription types
+export type Subscription = {
+  id: string;
+  status: "active" | "trialing" | "canceled" | "incomplete" | "past_due";
+  plan: string;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  trialStart?: Date;
+  trialEnd: string | null | Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+  cancelAt: string | null;
+  canceledAt?: Date | null;
+  currentPeriodStart?: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  referenceId?: string;
+  limits?: {
+    events: number;
+    [key: string]: any;
+  };
+  seats?: number;
+  metadata?: Record<string, any>;
+};
+
+export function useSubscription() {
+  return useQuery({
+    queryKey: ["subscription"],
+    queryFn: async () => {
+      try {
+        const { data, error } = await authClient.subscription.list();
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        // Find the active subscription
+        const activeSubscription =
+          data?.find(
+            (sub) => sub.status === "active" || sub.status === "trialing"
+          ) || null;
+
+        // Ensure the returned data has the correct shape for our frontend
+        return activeSubscription as Subscription | null;
+      } catch (error) {
+        console.error("Failed to fetch subscription:", error);
+        throw error;
+      }
+    },
+  });
+}
+
+export function useCancelSubscription() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      returnUrl,
+      referenceId,
+    }: {
+      returnUrl: string;
+      referenceId?: string;
+    }) => {
+      const { error } = await authClient.subscription.cancel({
+        returnUrl,
+        // referenceId,
+      });
+      console.log(error);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // This operation actually redirects to Stripe, not returning data
+      return true;
+    },
+    onSuccess: () => {
+      // No need to invalidate queries as we'll be redirected
+    },
+    onError: (error) => {
+      console.error("Failed to cancel subscription:", error);
+    },
+  });
+}
+
+export function useUpgradeSubscription() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      plan,
+      successUrl,
+      cancelUrl,
+      referenceId,
+    }: {
+      plan: string;
+      successUrl: string;
+      cancelUrl: string;
+      referenceId?: string;
+    }) => {
+      await authClient.subscription.upgrade({
+        plan,
+        successUrl,
+        cancelUrl,
+        referenceId,
+      });
+
+      // This operation actually redirects to Stripe, not returning data
+      return true;
+    },
+    onSuccess: () => {
+      // No need to invalidate queries as we'll be redirected
+    },
+    onError: (error) => {
+      console.error("Failed to upgrade subscription:", error);
+    },
+  });
+}
