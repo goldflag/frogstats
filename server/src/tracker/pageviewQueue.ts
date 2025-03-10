@@ -56,14 +56,11 @@ class PageviewQueue {
     // Process each pageview with its geo data
     const processedPageviews = batch.map((pv) => {
       const countryCode = geoData?.[pv.ipAddress]?.data?.countryIso || "";
-      const regionCode =
-        geoData?.[pv.ipAddress]?.data?.subdivisions?.[0]?.isoCode || "";
+      const regionCode = geoData?.[pv.ipAddress]?.data?.subdivisions?.[0]?.isoCode || "";
 
       return {
         site_id: pv.site_id,
-        timestamp: DateTime.fromISO(pv.timestamp).toFormat(
-          "yyyy-MM-dd HH:mm:ss"
-        ),
+        timestamp: DateTime.fromISO(pv.timestamp).toFormat("yyyy-MM-dd HH:mm:ss"),
         session_id: pv.sessionId,
         user_id: pv.userId,
         hostname: pv.hostname || "",
@@ -80,8 +77,8 @@ class PageviewQueue {
         screen_height: pv.screenHeight || 0,
         device_type: getDeviceType(pv.screenWidth, pv.screenHeight, pv.ua),
         country: countryCode,
-        iso_3166_2: countryCode + "-" + regionCode,
-      };
+        iso_3166_2: countryCode && regionCode ? countryCode + "-" + regionCode : "",
+      }
     });
 
     console.info("bulk insert: ", processedPageviews.length);
