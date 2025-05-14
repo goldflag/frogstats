@@ -8,6 +8,7 @@ import { useUserOrganizations } from "../../../api/admin/organizations";
 import { NoOrganization } from "../../../components/NoOrganization";
 import { TrialPlan } from "./components/TrialPlan";
 import { ExpiredTrialPlan } from "./components/ExpiredTrialPlan";
+import { FreePlan } from "./components/FreePlan";
 import { useSetPageTitle } from "../../../hooks/useSetPageTitle";
 
 export default function SubscriptionPage() {
@@ -39,6 +40,12 @@ export default function SubscriptionPage() {
       return <ExpiredTrialPlan message={activeSubscription.message} />;
     }
 
+    // Check if user is on free plan
+    if (activeSubscription.status === "free") {
+      return <FreePlan />;
+    }
+
+    // Check if user is on trial plan (this condition will be unused after removing trial)
     if (activeSubscription.isTrial) {
       return <TrialPlan />;
     }

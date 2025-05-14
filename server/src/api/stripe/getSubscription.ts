@@ -6,8 +6,10 @@ import { user as userSchema } from "../../db/postgres/schema.js";
 import {
   getStripePrices,
   StripePlan,
-  TRIAL_DURATION_DAYS,
-  TRIAL_EVENT_LIMIT,
+  DEFAULT_EVENT_LIMIT,
+  // Trial constants commented out
+  // TRIAL_DURATION_DAYS,
+  // TRIAL_EVENT_LIMIT,
 } from "../../lib/const.js";
 import { stripe } from "../../lib/stripe.js";
 
@@ -93,33 +95,42 @@ export async function getSubscriptionInner(userId: string) {
   }
 
   // If we get here, the user has no active paid subscription
-  // Check if they're in the trial period
-  const createdAt = new Date(user.createdAt);
-  const now = new Date();
-  const trialEndDate = new Date(createdAt);
-  trialEndDate.setDate(trialEndDate.getDate() + TRIAL_DURATION_DAYS);
+  // Instead of checking for trial period, return the free tier details
 
-  const isInTrialPeriod = now < trialEndDate;
+  // Trial period logic (commented out - preserved for potential future use)
+  // const createdAt = new Date(user.createdAt);
+  // const now = new Date();
+  // const trialEndDate = new Date(createdAt);
+  // trialEndDate.setDate(trialEndDate.getDate() + TRIAL_DURATION_DAYS);
+  // const isInTrialPeriod = now < trialEndDate;
+  // if (isInTrialPeriod) {
+  //   // User is in trial period
+  //   return {
+  //     id: null,
+  //     planName: "trial",
+  //     status: "trialing",
+  //     currentPeriodEnd: trialEndDate,
+  //     eventLimit: TRIAL_EVENT_LIMIT,
+  //     monthlyEventCount: user.monthlyEventCount,
+  //     interval: "month",
+  //     isTrial: true,
+  //     trialDaysRemaining: Math.ceil(
+  //       (trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+  //     ),
+  //   };
+  // }
 
-  if (isInTrialPeriod) {
-    // User is in trial period
-    return {
-      id: null,
-      planName: "trial",
-      status: "trialing",
-      currentPeriodEnd: trialEndDate,
-      eventLimit: TRIAL_EVENT_LIMIT,
-      monthlyEventCount: user.monthlyEventCount,
-      interval: "month",
-      isTrial: true,
-      trialDaysRemaining: Math.ceil(
-        (trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-      ),
-    };
-  }
-
-  // User has no subscription and trial has ended - return null
-  return null;
+  // Return Free tier details
+  return {
+    id: null,
+    planName: "Free",
+    status: "free",
+    currentPeriodEnd: null, // Free tier doesn't expire
+    eventLimit: DEFAULT_EVENT_LIMIT,
+    monthlyEventCount: user.monthlyEventCount,
+    interval: "month",
+    isTrial: false,
+  };
 }
 
 export async function getSubscription(
@@ -135,11 +146,10 @@ export async function getSubscription(
   try {
     const responseData = await getSubscriptionInner(userId);
 
-    // If trial has expired and no subscription, inform the user
+    // If no subscription data found (user not found), return an error
     if (!responseData) {
-      return reply.send({
-        status: "expired",
-        message: "Your trial has expired. Please subscribe to continue.",
+      return reply.status(404).send({
+        error: "User not found",
       });
     }
 

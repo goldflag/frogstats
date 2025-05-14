@@ -5,13 +5,12 @@ import { processResults } from "../api/analytics/utils.js";
 import { clickhouse } from "../db/clickhouse/clickhouse.js";
 import { db } from "../db/postgres/postgres.js";
 import { member, sites, user } from "../db/postgres/schema.js";
-import { getStripePrices, StripePlan } from "../lib/const.js";
+import {
+  getStripePrices,
+  StripePlan,
+  DEFAULT_EVENT_LIMIT,
+} from "../lib/const.js";
 import { stripe } from "../lib/stripe.js";
-
-// Default event limit for users without an active subscription
-const DEFAULT_EVENT_LIMIT = 0;
-
-const TRIAL_EVENT_LIMIT = 100_000;
 
 // Global set to track site IDs that have exceeded their monthly limits
 export const sitesOverLimit = new Set<number>();
@@ -64,15 +63,9 @@ async function getUserSubscriptionInfo(userData: {
   createdAt: string;
   email: string;
 }): Promise<[number, string | null]> {
-  const createdAtDate = DateTime.fromSQL(userData.createdAt);
-  const daysSinceCreation = Math.abs(createdAtDate.diffNow("days").days);
-
+  // Free tier - no trial, just DEFAULT_EVENT_LIMIT
   if (!userData.stripeCustomerId) {
-    if (daysSinceCreation < 14) {
-      return [TRIAL_EVENT_LIMIT, createdAtDate.toISODate() as string];
-    }
-
-    // No Stripe customer ID, use default limit and start of current month
+    // No Stripe customer ID, use default limit (10,000) and start of current month
     return [DEFAULT_EVENT_LIMIT, getStartOfMonth()];
   }
 
@@ -85,11 +78,7 @@ async function getUserSubscriptionInfo(userData: {
     });
 
     if (subscriptions.data.length === 0) {
-      // If the user was created in the last 14 days, use the trial limit
-      if (daysSinceCreation < 14) {
-        return [TRIAL_EVENT_LIMIT, createdAtDate.toISODate() as string];
-      }
-      // No active subscription, use default limit and start of current month
+      // No active subscription, use default free tier limit (10,000) and start of current month
       return [DEFAULT_EVENT_LIMIT, getStartOfMonth()];
     }
     
