@@ -58,16 +58,10 @@ export function RemoveMemberDialog({
         <DialogHeader>
           <DialogTitle>Remove Member</DialogTitle>
           <DialogDescription>
-            Are you sure you want to remove this member from the organization?
+            Are you sure you want to remove {member.user.name} from the
+            organization?
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
-          <p>
-            You are about to remove{" "}
-            <strong>{member.user.name || member.user.email}</strong> from this
-            organization.
-          </p>
-        </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel

@@ -20,7 +20,7 @@ const buttonVariants = cva(
         destructive:
           "bg-red-500 text-neutral-50 border border-red-500 shadow-sm hover:bg-red-500/90 dark:bg-red-900 dark:border-red-700 dark:text-neutral-50 dark:hover:bg-red-900/90 dark:hover:border-red-500",
         warning:
-          "bg-yellow-500 text-neutral-900 border border-yellow-500 shadow-sm hover:bg-yellow-500/90 dark:bg-yellow-600 dark:border-yellow-500 dark:text-neutral-50 dark:hover:bg-yellow-600/90 dark:hover:border-yellow-400",
+          "bg-yellow-500 text-neutral-900 border border-yellow-500 shadow-sm hover:bg-yellow-500/90 dark:bg-yellow-700 dark:border-yellow-500 dark:text-neutral-50 dark:hover:bg-yellow-700/90 dark:hover:border-yellow-400",
         outline:
           "border border-neutral-200 shadow-sm hover:bg-neutral-100 hover:text-neutral-900 dark:border-neutral-700 dark:hover:bg-neutral-900 dark:hover:border-neutral-600 dark:hover:text-neutral-50",
         ghost:

@@ -1,24 +1,29 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog } from "@/components/ui/dialog";
-import { DialogContent } from "@/components/ui/dialog";
-import { DialogHeader } from "@/components/ui/dialog";
-import { DialogTitle } from "@/components/ui/dialog";
-import { DialogTrigger } from "@/components/ui/dialog";
-import { DialogFooter } from "@/components/ui/dialog";
-import { DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
-import { SelectContent } from "@/components/ui/select";
-import { SelectItem } from "@/components/ui/select";
-import { SelectTrigger } from "@/components/ui/select";
-import { SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { UserPlus } from "lucide-react";
-import { authClient } from "@/lib/auth";
+import { useState } from "react";
 import { toast } from "sonner";
+import { Alert } from "../../../../components/ui/alert";
+import { authClient } from "../../../../lib/auth";
 
 interface InviteMemberDialogProps {
   organizationId: string;
@@ -30,22 +35,38 @@ export function InviteMemberDialog({
   onSuccess,
 }: InviteMemberDialogProps) {
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("member");
+  const [role, setRole] = useState<"admin" | "member">("member");
+
   const [isLoading, setIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState("");
 
   const handleInvite = async () => {
     if (!email) {
-      toast.error("Email is required");
+      setError("Email is required");
       return;
     }
 
     setIsLoading(true);
     try {
+      // await fetch(`${BACKEND_URL}/add-user-to-organization`, {
+      //   method: "POST",
+      //   body: JSON.stringify({
+      //     email: email,
+      //     role: role,
+      //     organizationId: organizationId,
+      //   }),
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   credentials: "include",
+      // });
+
       await authClient.organization.inviteMember({
         email,
-        role: role as "admin" | "member" | "owner",
+        role,
         organizationId,
+        resend: true,
       });
 
       toast.success(`Invitation sent to ${email}`);
@@ -54,7 +75,7 @@ export function InviteMemberDialog({
       setEmail("");
       setRole("member");
     } catch (error: any) {
-      toast.error(error.message || "Failed to send invitation");
+      setError(error.message || "Failed to send invitation");
     } finally {
       setIsLoading(false);
     }
@@ -63,7 +84,7 @@ export function InviteMemberDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline" className="ml-2">
+        <Button size="sm" variant="outline">
           <UserPlus className="h-4 w-4 mr-1" />
           Invite Member
         </Button>
@@ -72,7 +93,7 @@ export function InviteMemberDialog({
         <DialogHeader>
           <DialogTitle>Invite a new member</DialogTitle>
           <DialogDescription>
-            Send an invitation to add someone to this organization.
+            Invite a new member to this organization.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -90,24 +111,28 @@ export function InviteMemberDialog({
           </div>
           <div className="grid gap-2">
             <Label htmlFor="role">Role</Label>
-            <Select value={role} onValueChange={setRole}>
+            <Select
+              value={role}
+              onValueChange={(value) => setRole(value as "admin" | "member")}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select a role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="member">Member</SelectItem>
+                {/* <SelectItem value="owner">Owner</SelectItem> */}
                 <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="owner">Owner</SelectItem>
+                <SelectItem value="member">Member</SelectItem>
               </SelectContent>
             </Select>
           </div>
+          {error && <Alert variant="destructive">{error}</Alert>}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
           <Button onClick={handleInvite} disabled={isLoading} variant="success">
-            {isLoading ? "Sending..." : "Send Invitation"}
+            {isLoading ? "Inviting..." : "Invite"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -33,7 +33,15 @@ services:
       - CLICKHOUSE_USER=${CLICKHOUSE_USER:-default}
       - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD:-frog}
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8123/ping"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8123/ping",
+        ]
       interval: 3s
       timeout: 5s
       retries: 5
@@ -72,6 +80,7 @@ services:
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - BASE_URL=${BASE_URL}
       - DISABLE_SIGNUP=${DISABLE_SIGNUP}
+      - RESEND_API_KEY=${RESEND_API_KEY}
     depends_on:
       clickhouse:
         condition: service_healthy
@@ -101,5 +110,5 @@ services:
 volumes:
   clickhouse-data:
   postgres-data:
-  caddy_data:     # Persistent volume for Caddy's certificates and state
-  caddy_config:   # Persistent volume for Caddy's configuration cache (optional but good practice)
+  caddy_data: # Persistent volume for Caddy's certificates and state
+  caddy_config: # Persistent volume for Caddy's configuration cache (optional but good practice)

@@ -6,7 +6,8 @@ import { eq } from "drizzle-orm";
 import pg from "pg";
 import { db } from "../db/postgres/postgres.js";
 import * as schema from "../db/postgres/schema.js";
-import { DISABLE_SIGNUP, IS_CLOUD } from "./const.js";
+import { DISABLE_SIGNUP } from "./const.js";
+import { sendInvitationEmail } from "./resend.js";
 
 dotenv.config();
 
@@ -19,6 +20,15 @@ const pluginList = [
     allowUserToCreateOrganization: true,
     // Set the creator role to owner
     creatorRole: "owner",
+    sendInvitationEmail: async (invitation) => {
+      const inviteLink = `${process.env.BASE_URL}/invitation?invitationId=${invitation.invitation.id}&organization=${invitation.organization.name}&inviterEmail=${invitation.inviter.user.email}`;
+      await sendInvitationEmail(
+        invitation.email,
+        invitation.inviter.user.email,
+        invitation.organization.name,
+        inviteLink
+      );
+    },
   }),
 ];
 

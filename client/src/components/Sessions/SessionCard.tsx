@@ -11,7 +11,7 @@ import {
   FileText,
   Laptop,
   MousePointerClick,
-  Smartphone
+  Smartphone,
 } from "lucide-react";
 import { DateTime, Duration } from "luxon";
 import { memo, useState } from "react";
@@ -192,10 +192,10 @@ export function SessionCard({ session, onClick, userId }: SessionCardProps) {
             <span className="text-gray-400">
               {DateTime.fromSQL(session.session_start, {
                 zone: "utc",
-              }).setLocale(userLocale)
+              })
+                .setLocale(userLocale)
                 .toLocal()
-                .toFormat(hour12 ? "MMM d, h:mm a" : "dd MMM, HH:mm")
-              }
+                .toFormat(hour12 ? "MMM d, h:mm a" : "dd MMM, HH:mm")}
             </span>
             <span className="hidden md:block">{duration}</span>
           </div>
@@ -286,7 +286,9 @@ export const SessionCardSkeleton = memo(() => {
             <Skeleton className={cn("h-3", getRandomTimeWidth())} />
 
             {/* Duration skeleton */}
-            <Skeleton className={cn("h-3", getRandomDurationWidth(), "hidden md:block")} />
+            <Skeleton
+              className={cn("h-3", getRandomDurationWidth(), "hidden md:block")}
+            />
           </div>
 
           {/* Expand icon */}

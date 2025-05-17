@@ -35,6 +35,7 @@ export async function middleware(request: NextRequest) {
       "signup",
       "settings",
       "subscribe",
+      "invitation",
       "auth",
       "_next",
       "api",

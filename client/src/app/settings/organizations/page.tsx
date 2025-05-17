@@ -19,15 +19,17 @@ import { authClient } from "../../../lib/auth";
 // Import the separated dialog components
 import { useOrganizationMembers } from "../../../api/admin/auth";
 import {
+  useOrganizationInvitations,
   UserOrganization,
   useUserOrganizations,
 } from "../../../api/admin/organizations";
 import { NoOrganization } from "../../../components/NoOrganization";
-import { AddMemberDialog } from "./components/AddMemberDialog";
+import { InviteMemberDialog } from "./components/InviteMemberDialog";
 import { DeleteOrganizationDialog } from "./components/DeleteOrganizationDialog";
 import { EditOrganizationDialog } from "./components/EditOrganizationDialog";
 import { RemoveMemberDialog } from "./components/RemoveMemberDialog";
 import { useSetPageTitle } from "../../../hooks/useSetPageTitle";
+import { Invitations } from "./components/Invitations";
 
 // Types for our component
 export type Organization = {
@@ -54,24 +56,7 @@ export type Member = {
 // Organization Component with Members Table
 function Organization({ org }: { org: UserOrganization }) {
   const { data: members, refetch } = useOrganizationMembers(org.id);
-
-  // const { data: invitations, refetch: refetchInvitations } = useQuery({
-  //   queryKey: ["invitations", org.id],
-  //   queryFn: async () => {
-  //     const invitations = await authClient.organization.listInvitations({
-  //       query: {
-  //         organizationId: org.id,
-  //       },
-  //     });
-
-  //     if (invitations.error) {
-  //       throw new Error(invitations.error.message);
-  //     }
-
-  //     return invitations.data;
-  //   },
-  // });
-
+  const { refetch: refetchInvitations } = useOrganizationInvitations(org.id);
   const { data } = authClient.useSession();
 
   const isOwner = members?.data.find(
@@ -80,7 +65,7 @@ function Organization({ org }: { org: UserOrganization }) {
 
   const handleRefresh = () => {
     refetch();
-    // refetchInvitations();
+    refetchInvitations();
   };
 
   return (
@@ -98,7 +83,7 @@ function Organization({ org }: { org: UserOrganization }) {
             <div className="flex items-center gap-2">
               {isOwner && (
                 <>
-                  <AddMemberDialog
+                  <InviteMemberDialog
                     organizationId={org.id}
                     onSuccess={handleRefresh}
                   />
@@ -164,81 +149,8 @@ function Organization({ org }: { org: UserOrganization }) {
           </Table>
         </CardContent>
       </Card>
-      {/* Disabled for now. We aren't using this */}
-      {/* 
-      <Card className="w-full">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-xl">Pending Invitations</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Expires</TableHead>
-                {isOwner && <TableHead className="w-12">Actions</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invitations?.length && invitations.length > 0 ? (
-                invitations.map((invitation) => (
-                  <TableRow key={invitation.id}>
-                    <TableCell>{invitation.email}</TableCell>
-                    <TableCell className="capitalize">
-                      {invitation.role}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          invitation.status === "pending"
-                            ? "outline"
-                            : invitation.status === "accepted"
-                            ? "default"
-                            : "destructive"
-                        }
-                      >
-                        {invitation.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {DateTime.fromJSDate(
-                        new Date(invitation.expiresAt)
-                      ).toLocaleString(DateTime.DATE_SHORT)}
-                    </TableCell>
-                    {isOwner && (
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={async () => {
-                            await authClient.organization.cancelInvitation({
-                              invitationId: invitation.id,
-                            });
-                            refetchInvitations();
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={isOwner ? 5 : 4}
-                    className="text-center py-6 text-muted-foreground"
-                  >
-                    No pending invitations
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card> */}
+
+      <Invitations organizationId={org.id} isOwner={!!isOwner} />
     </>
   );
 }

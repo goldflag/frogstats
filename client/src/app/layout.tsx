@@ -14,7 +14,7 @@ import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
-const publicRoutes = ["/login", "/signup"];
+const publicRoutes = ["/login", "/signup", "/invitation"];
 
 // Helper function to check if a site is public
 async function checkIfSiteIsPublic(siteId: string): Promise<boolean> {
@@ -50,7 +50,9 @@ export default function RootLayout({
       // Don't check for public site status on obvious non-site paths
       if (
         !publicRoutes.includes(`/${potentialSiteId}`) &&
-        !["_next", "api", "settings", "subscribe"].includes(potentialSiteId)
+        !["_next", "api", "settings", "subscribe", "invitation"].includes(
+          potentialSiteId
+        )
       ) {
         setIsCheckingPublic(true);
 
