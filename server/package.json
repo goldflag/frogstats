@@ -27,6 +27,7 @@
     "drizzle-orm": "0.43.1",
     "fastify": "5.3.3",
     "fastify-better-auth": "1.0.4",
+    "isbot": "^5.1.28",
     "luxon": "3.6.1",
     "node-cron": "4.0.5",
     "pg": "8.16.0",

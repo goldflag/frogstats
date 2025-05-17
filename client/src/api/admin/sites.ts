@@ -12,6 +12,7 @@ export type SiteResponse = {
   createdBy: string;
   public: boolean;
   saltUserIds: boolean;
+  blockBots: boolean;
   isOwner: boolean;
 };
 
@@ -24,6 +25,7 @@ export type GetSitesResponse = {
   createdBy: string;
   public: boolean;
   saltUserIds: boolean;
+  blockBots: boolean;
   overMonthlyLimit?: boolean;
   monthlyEventCount?: number;
   eventLimit?: number;
@@ -51,6 +53,7 @@ export function addSite(
   settings?: {
     isPublic?: boolean;
     saltUserIds?: boolean;
+    blockBots?: boolean;
   }
 ) {
   return authedFetchWithError<{ siteId: number }>(`${BACKEND_URL}/add-site`, {
@@ -61,6 +64,7 @@ export function addSite(
       organizationId,
       public: settings?.isPublic || false,
       saltUserIds: settings?.saltUserIds || false,
+      blockBots: settings?.blockBots === undefined ? true : settings?.blockBots,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -145,6 +149,19 @@ export function changeSiteSalt(siteId: number, saltUserIds: boolean) {
     body: JSON.stringify({
       siteId,
       saltUserIds,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+export function changeSiteBlockBots(siteId: number, blockBots: boolean) {
+  return authedFetchWithError(`${BACKEND_URL}/change-site-block-bots`, {
+    method: "POST",
+    body: JSON.stringify({
+      siteId,
+      blockBots,
     }),
     headers: {
       "Content-Type": "application/json",

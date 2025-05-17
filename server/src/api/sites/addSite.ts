@@ -13,6 +13,7 @@ export async function addSite(
       organizationId: string;
       public?: boolean;
       saltUserIds?: boolean;
+      blockBots?: boolean;
     };
   }>,
   reply: FastifyReply
@@ -23,6 +24,7 @@ export async function addSite(
     organizationId,
     public: isPublic,
     saltUserIds,
+    blockBots,
   } = request.body;
 
   // Validate domain format using regex
@@ -97,6 +99,7 @@ export async function addSite(
         organizationId,
         public: isPublic || false,
         saltUserIds: saltUserIds || false,
+        blockBots: blockBots === undefined ? true : blockBots,
       })
       .returning();
 
@@ -108,6 +111,8 @@ export async function addSite(
       public: newSite[0].public || false,
       saltUserIds: newSite[0].saltUserIds || false,
       domain: newSite[0].domain,
+      blockBots:
+        newSite[0].blockBots === undefined ? true : newSite[0].blockBots,
     });
 
     return reply.status(201).send(newSite[0]);

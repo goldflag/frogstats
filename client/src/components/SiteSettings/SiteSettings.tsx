@@ -36,6 +36,7 @@ import {
   changeSiteDomain,
   changeSitePublic,
   changeSiteSalt,
+  changeSiteBlockBots,
   deleteSite,
   GetSitesResponse,
   SiteResponse,
@@ -81,6 +82,10 @@ export function SiteSettingsInner({
   const [isChangingPublic, setIsChangingPublic] = useState(false);
   const [isSalting, setIsSalting] = useState(siteMetadata.saltUserIds || false);
   const [isChangingSalt, setIsChangingSalt] = useState(false);
+  const [isBlockingBots, setIsBlockingBots] = useState(
+    siteMetadata.blockBots === undefined ? true : siteMetadata.blockBots
+  );
+  const [isChangingBlockBots, setIsChangingBlockBots] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("script");
@@ -155,6 +160,22 @@ export function SiteSettingsInner({
       setIsSalting(!checked); // Revert UI state on error
     } finally {
       setIsChangingSalt(false);
+    }
+  };
+
+  const handleBlockBotsToggle = async (checked: boolean) => {
+    try {
+      setIsChangingBlockBots(true);
+      await changeSiteBlockBots(siteMetadata.siteId, checked);
+      setIsBlockingBots(checked);
+      toast.success(checked ? "Bot blocking enabled" : "Bot blocking disabled");
+      refetch();
+    } catch (error) {
+      console.error("Error changing bot blocking setting:", error);
+      toast.error("Failed to update bot blocking setting");
+      setIsBlockingBots(!checked); // Revert UI state on error
+    } finally {
+      setIsChangingBlockBots(false);
     }
   };
 
@@ -236,6 +257,28 @@ export function SiteSettingsInner({
                 checked={isSalting}
                 disabled={isChangingSalt || disabled}
                 onCheckedChange={handleSaltToggle}
+              />
+            </div>
+
+            {/* Bot Blocking Section */}
+            <div className="flex items-center justify-between">
+              <div>
+                <Label
+                  htmlFor="blockBots"
+                  className="text-sm font-medium text-foreground block"
+                >
+                  Block Bot Traffic
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  When enabled, traffic from known bots and crawlers will not be
+                  tracked
+                </p>
+              </div>
+              <Switch
+                id="blockBots"
+                checked={isBlockingBots}
+                disabled={isChangingBlockBots || disabled}
+                onCheckedChange={handleBlockBotsToggle}
               />
             </div>
 

@@ -6,6 +6,7 @@ interface SiteConfigData {
   public: boolean;
   saltUserIds: boolean;
   domain: string;
+  blockBots: boolean;
 }
 
 class SiteConfig {
@@ -20,6 +21,7 @@ class SiteConfig {
           public: sites.public,
           saltUserIds: sites.saltUserIds,
           domain: sites.domain,
+          blockBots: sites.blockBots,
         })
         .from(sites);
 
@@ -32,6 +34,7 @@ class SiteConfig {
           public: site.public || false,
           saltUserIds: site.saltUserIds || false,
           domain: site.domain || "",
+          blockBots: site.blockBots === undefined ? true : site.blockBots,
         });
       }
 
@@ -64,6 +67,16 @@ class SiteConfig {
   }
 
   /**
+   * Check if a site has bot blocking enabled
+   */
+  shouldBlockBots(siteId: string | number): boolean {
+    const numericSiteId = Number(siteId);
+    const config = this.siteConfigMap.get(numericSiteId);
+    // Default to true if configuration is not found (safeguard)
+    return config?.blockBots !== false;
+  }
+
+  /**
    * Get the domain of a site
    */
   getSiteDomain(siteId: string | number): string {
@@ -80,6 +93,7 @@ class SiteConfig {
       public: false,
       saltUserIds: false,
       domain: "",
+      blockBots: true,
     };
     config.public = isPublic;
     this.siteConfigMap.set(siteId, config);
@@ -93,8 +107,23 @@ class SiteConfig {
       public: false,
       saltUserIds: false,
       domain: "",
+      blockBots: true,
     };
     config.saltUserIds = saltUserIds;
+    this.siteConfigMap.set(siteId, config);
+  }
+
+  /**
+   * Update the bot blocking setting of a site in the cache
+   */
+  updateSiteBlockBotsSetting(siteId: number, blockBots: boolean): void {
+    const config = this.siteConfigMap.get(siteId) || {
+      public: false,
+      saltUserIds: false,
+      domain: "",
+      blockBots: true,
+    };
+    config.blockBots = blockBots;
     this.siteConfigMap.set(siteId, config);
   }
 
@@ -106,6 +135,7 @@ class SiteConfig {
       public: false,
       saltUserIds: false,
       domain: "",
+      blockBots: true,
     };
     config.domain = domain;
     this.siteConfigMap.set(siteId, config);

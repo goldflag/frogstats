@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z, ZodError } from "zod";
+import { isbot } from "isbot";
 import {
   clearSelfReferrer,
   createBasePayload,
@@ -240,6 +241,23 @@ export async function trackEvent(request: FastifyRequest, reply: FastifyReply) {
         success: false,
         error: originValidation.error,
       });
+    }
+
+    // Make sure the site config is loaded
+    await siteConfig.ensureInitialized();
+
+    // Check if bot blocking is enabled for this site and if the request is from a bot
+    if (siteConfig.shouldBlockBots(validatedPayload.site_id)) {
+      const userAgent = request.headers["user-agent"] as string;
+      if (userAgent && isbot(userAgent)) {
+        console.log(
+          `[Tracking] Bot request filtered for site ${validatedPayload.site_id} from User-Agent: ${userAgent}`
+        );
+        return reply.status(200).send({
+          success: true,
+          message: "Event not tracked - bot detected",
+        });
+      }
     }
 
     // Check if the site has exceeded its monthly limit

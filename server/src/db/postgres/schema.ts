@@ -63,6 +63,7 @@ export const sites = pgTable(
     organizationId: text("organization_id").references(() => organization.id),
     public: boolean().default(false),
     saltUserIds: boolean().default(false),
+    blockBots: boolean().default(true).notNull(),
   },
   (table) => [
     foreignKey({
